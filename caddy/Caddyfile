@@ -1,0 +1,26 @@
+# zotero-mcpコンテナからホストのZotero APIへのプロキシ設定
+# コンテナがリクエストを待ち受ける内部ポート
+:9998 {
+    # 受け取ったリクエストをホストOSのZotero APIに転送
+    # Zoteroのデフォルトポート23119を使用（設定により変更される場合があります）
+    reverse_proxy host.docker.internal:23119 {
+        # 転送時に、HTTP HostヘッダーをZoteroが期待する値に書き換える
+        # これによりHostヘッダー不一致問題を解決
+        header_up Host localhost:23119
+    }
+
+    # ログ設定（デバッグ用）
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}
+
+# 追加: Zoteroが別ポートを使用している場合の代替設定
+# 必要に応じてコメントアウトを解除し、ポート番号を調整してください
+# :9997 {
+#     reverse_proxy host.docker.internal:23120 {
+#         header_up Host localhost:23120
+#     }
+# }

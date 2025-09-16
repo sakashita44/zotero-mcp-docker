@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"zotero": {
+			"url": "http://localhost:9999/mcp",
+			"type": "http"
+		}
+	},
+	"inputs": []
+}

@@ -1,0 +1,47 @@
+services:
+  # zotero-mcp アプリケーションサービス
+  zotero_mcp_server:
+    container_name: zotero_mcp
+    # zotero/Dockerfile の内容に基づいてイメージをビルド
+    build:
+      context: ./zotero
+    restart: always
+    # ホストOSの9999番ポートをコンテナの9999番ポートに接続
+    ports:
+      - "9999:9999"
+    # 環境変数設定
+    environment:
+      - ZOTERO_LOCAL=true
+    # ホストOSのディレクトリをコンテナ内にマウントし、データを永続化する
+    volumes:
+      # 設定ファイル用: ホストのconfigディレクトリをコンテナ内の設定ディレクトリにマウント
+      - ./zotero/config:/root/.config/zotero-mcp
+      # データベース用: ホストのdataディレクトリをコンテナ内のデータディレクトリにマウント
+      - ./zotero/data:/root/.local/share/zotero-mcp
+    # caddyサービスが起動してからこのサービスが起動するように依存関係を設定
+    depends_on:
+      - caddy
+    # コンテナ間通信用のネットワークに接続
+    networks:
+      - zotero_network
+
+  # Caddy リバースプロキシサービス
+  caddy:
+    # 公式のCaddyイメージを使用
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: always
+    # ホストOSのCaddyfileをコンテナ内の設定ファイルとしてマウント
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+    # コンテナ間通信用のネットワークに接続
+    networks:
+      - zotero_network
+    # Caddyがhost.docker.internalを解決できるように追加ホストを設定
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+# コンテナ間通信用のネットワーク定義
+networks:
+  zotero_network:
+    driver: bridge
